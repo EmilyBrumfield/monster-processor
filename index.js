@@ -4,6 +4,7 @@ const inputBox = "main-input";
 function testProcess() {
     let testMonster = butcherMonster(inputBox);
     let testAC = getAC(testMonster);
+    console.log(testAC)
     
 }
 
@@ -49,26 +50,21 @@ function wholeWord(word) { //placeholder
 }
 
 function findLine(word, monster) {  //finds a particular element in a monster array based on the starting word, returns index of that element
+    //this will search through the entire text, even after it finds the index, so it shouldn't be used with enormous text blocks at the moment
     let targetIndex = -1;
     
-    alert("Length is " + monster.length);
     for (let i = 0; i < monster.length; i += 1) {
         if ( wholeWord(word).test(monster[i]) ) { //if the word is in the particular line of the array
-            console.log("It's here at " + i)
             targetIndex = i;
-
         }
         else {
-            console.log("It's not here at " + i)
         }
     }
-    alert("Finished, target index is " + targetIndex);
     return targetIndex;
 }
 
 function getAC(monster) {
     let targetIndex = findLine("AC", monster);
-    alert("Line " + targetIndex)
     return monster[targetIndex];
 }
 
