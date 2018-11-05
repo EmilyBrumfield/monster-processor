@@ -83,7 +83,34 @@ function processAC(rawText) {
     //This section will chop the armor sources in parentheses off the end of the AC; if there's no parenthetical, it doesn't do anything
     let cutOffPoint = rawText.indexOf("(") - 1; 
     rawText = rawText.slice(0, cutOffPoint);
-    return rawText;
+
+    let Armor = {};
+
+    //get AC, cut it out of the raw text
+    cutOffPoint = rawText.indexOf(","); 
+    Armor.AC = rawText.slice(0, cutOffPoint);
+    rawText = rawText.slice(cutOffPoint+2)
+
+    //get touch, cut it out of the raw text
+    cutOffPoint = rawText.indexOf(","); 
+    Armor.touch = rawText.slice(0, cutOffPoint);
+    rawText = rawText.slice(cutOffPoint+2)
+    
+    //the remainder is flat-footed; get it
+    Armor.flatfooted = rawText;
+
+    //strip non-numeric characters
+    Armor.AC = Armor.AC.replace(/\D/g,'');
+    Armor.touch = Armor.touch.replace(/\D/g,'');
+    Armor.flatfooted = Armor.flatfooted.replace(/\D/g,'');
+
+    //convert to integets
+    Armor.AC = parseInt(Armor.AC, 10);
+    Armor.touch = parseInt(Armor.touch, 10);
+    Armor.flatfooted = parseInt(Armor.flatfooted, 10);
+   
+    //return the processed AC types as a single object
+    return Armor;
 }
 
 //---------------------------------------------------------------------------------------
