@@ -1,12 +1,20 @@
 //can refactor this for efficiency but let's just work on making things work for now
-const inputBox = "main-input";
+const inputBox = "input-box";
 
 function testProcess() {
     let testMonster = butcherMonster(inputBox);
-    let testAC = getAC(testMonster);
+    let testAC = getStats(testMonster, "AC");
+    testAC = processAC(testAC);
+    let testHP = getStats(testMonster, "hp");
+    let testSaves = getStats(testMonster, "Fort");
+    let testAbilities = getStats(testMonster, "Str");
     console.log(testAC)
-    
+    console.log(testHP)
+    console.log(testSaves)
+    console.log(testAbilities)    
 }
+
+
 
 function grabText(targetID) {
     let textchunk = document.getElementById(targetID).value;
@@ -63,10 +71,22 @@ function findLine(word, monster) {  //finds a particular element in a monster ar
     return targetIndex;
 }
 
-function getAC(monster) {
-    let targetIndex = findLine("AC", monster);
+//-----------------------------------GET STAT FUNCTIONS---------------------------------
+//Gets statistics, then reformats or converts them depending on settings
+
+function getStats(monster, statName) {
+    let targetIndex = findLine(statName, monster);
     return monster[targetIndex];
 }
+
+function processAC(rawText) {
+    //This section will chop the armor sources in parentheses off the end of the AC; if there's no parenthetical, it doesn't do anything
+    let cutOffPoint = rawText.indexOf("(") - 1; 
+    rawText = rawText.slice(0, cutOffPoint);
+    return rawText;
+}
+
+//---------------------------------------------------------------------------------------
 
 //makes sure this is PFSRD text, chops it up for use in the next step
 function butcherMonster(targetID) {
