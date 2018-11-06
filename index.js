@@ -1,5 +1,9 @@
+//Compatible monster sources: PFSRD
 //can refactor this for efficiency but let's just work on making things work for now
-const inputBox = "input-box";
+
+const inputBox = "input-box";  //the name of the input textarea; paste a monster here from a compatible source
+
+//-----------------------------TEST FUNCTION, IGNORE-------------------
 
 function testProcess() {
     let testMonster = butcherMonster(inputBox);
@@ -13,8 +17,8 @@ function testProcess() {
     console.log(testSaves)
     console.log(testAbilities)    
 }
-
-
+//----STRING FUNCTIONS
+//----Various functions to get text from the input, split it up into arrays, search it for particular information
 
 function grabText(targetID) {
     let textchunk = document.getElementById(targetID).value;
@@ -25,6 +29,28 @@ function splitText(targetID) {
     let textchunk = grabText(targetID);
     return textchunk.split('\n');
 }
+
+function wholeWord(word) { //placeholder
+    let regWord = new RegExp('\\b' + word + '\\b');
+    return regWord;
+}
+
+function findLine(word, monster) {  //finds a particular element in a monster array based on the starting word, returns index of that element
+    //this will search through the entire text, even after it finds the index, so it shouldn't be used with enormous text blocks at the moment
+    let targetIndex = -1;
+    
+    for (let i = 0; i < monster.length; i += 1) {
+        if ( wholeWord(word).test(monster[i]) ) { //if the word is in the particular line of the array
+            targetIndex = i;
+        }
+        else {
+        }
+    }
+    return targetIndex;
+}
+
+//----SOURCE CHECK
+//----Identifies source of the monster text; can only process a compatible source or something formatted the same
 
 function checkPFSRD(textchunk) {
     //if first appearances of CR comes before XP, and XP comes before Init, then it must be a monster from PFSRD.org
@@ -52,32 +78,15 @@ function checkPFSRD(textchunk) {
 
 }
 
-function wholeWord(word) { //placeholder
-    let regWord = new RegExp('\\b' + word + '\\b');
-    return regWord;
-}
-
-function findLine(word, monster) {  //finds a particular element in a monster array based on the starting word, returns index of that element
-    //this will search through the entire text, even after it finds the index, so it shouldn't be used with enormous text blocks at the moment
-    let targetIndex = -1;
-    
-    for (let i = 0; i < monster.length; i += 1) {
-        if ( wholeWord(word).test(monster[i]) ) { //if the word is in the particular line of the array
-            targetIndex = i;
-        }
-        else {
-        }
-    }
-    return targetIndex;
-}
-
-//-----------------------------------GET STAT FUNCTIONS---------------------------------
-//Gets statistics, then reformats or converts them depending on settings
+//----GET STATS
+//----Functions to grab particular stat lines from the document; most can be done with getStats
 
 function getStats(monster, statName) {
     let targetIndex = findLine(statName, monster);
     return monster[targetIndex];
 }
+//----PROCESS STATS
+//These functions extract useful information from stat strings, generally as integers that can be easily converted to another rules edition
 
 function processAC(rawText) {
     //This section will chop the armor sources in parentheses off the end of the AC; if there's no parenthetical, it doesn't do anything
@@ -104,7 +113,7 @@ function processAC(rawText) {
     Armor.touch = Armor.touch.replace(/\D/g,'');
     Armor.flatfooted = Armor.flatfooted.replace(/\D/g,'');
 
-    //convert to integets
+    //convert to integers
     Armor.AC = parseInt(Armor.AC, 10);
     Armor.touch = parseInt(Armor.touch, 10);
     Armor.flatfooted = parseInt(Armor.flatfooted, 10);
@@ -113,7 +122,8 @@ function processAC(rawText) {
     return Armor;
 }
 
-//---------------------------------------------------------------------------------------
+//---NEEDS BETTER DEFINITION
+//---Various stuff that should be renamed and put elsewhere
 
 //makes sure this is PFSRD text, chops it up for use in the next step
 function butcherMonster(targetID) {
@@ -125,14 +135,6 @@ function butcherMonster(targetID) {
         alert("This isn't going to work out.")
         return ["Not PFSRD"];
     }
-}
-
-function processMonster(monster) {  //"monster" is an array of parts from butcherMonster
-    
-//getAC
-//getAttacks
-//getEtc
-
 }
 
 /*Summary of procedures:
