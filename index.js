@@ -11,6 +11,7 @@ function testProcess() {
     let testAC = getStats(testMonster, "AC");
     testAC = processAC(testAC);
     let testHP = getStats(testMonster, "hp");
+    testHP = processHitDice(testHP);
     let testSaves = getStats(testMonster, "Fort");
     let testAbilities = getStats(testMonster, "Str");
     testAbilities = processAbilities(testAbilities);
@@ -182,6 +183,7 @@ function processAbilities(rawText) {  //extracts all six ability scores
     Abilities.wisdom = parseInt(Abilities.wisdom, 10);
     Abilities.charisma = parseInt(Abilities.charisma, 10);
 
+    //convert non-stats to 0
     Abilities.strength = fixNaN(Abilities.strength);
     Abilities.dexterity = fixNaN(Abilities.dexterity);
     Abilities.constitution = fixNaN(Abilities.constitution);
@@ -193,6 +195,17 @@ function processAbilities(rawText) {  //extracts all six ability scores
     return Abilities;
 }
 
+function processHitDice(rawText) {  //extracts Hit Dice; nothing else is needed
+    
+    let cutOffPoint = rawText.indexOf("(") + 1; //cut off everything before the hit dice
+    rawText = rawText.slice(cutOffPoint);
+    cutOffPoint = rawText.indexOf("d");
+    rawText = rawText.slice(0, cutOffPoint); //after this, the only thing is what's between the "("" and the "d", which is the number of hit dice
+
+    rawText = parseInt(rawText, 10);
+    
+    return rawText; //returns a single integer because hit dice are simple
+}
 
 //---NEEDS BETTER DEFINITION
 //---Various stuff that should be renamed and put elsewhere
