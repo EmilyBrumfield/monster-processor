@@ -52,6 +52,14 @@ function findLine(word, monster) {  //finds a particular element in a monster ar
     return targetIndex;
 }
 
+function fixNaN(possibleNaN) {  //changes any Not A Number integers to 0
+    if (isNaN(possibleNaN)) {  //if the argument tested is not a number
+        possibleNaN = 0; //changes it to 0; otherwise, nothing happens
+    }
+
+    return possibleNaN;
+}
+
 //----SOURCE CHECK
 //----Identifies source of the monster text; can only process a compatible source or something formatted the same
 
@@ -173,6 +181,13 @@ function processAbilities(rawText) {  //extracts all six ability scores
     Abilities.intelligence = parseInt(Abilities.intelligence, 10);
     Abilities.wisdom = parseInt(Abilities.wisdom, 10);
     Abilities.charisma = parseInt(Abilities.charisma, 10);
+
+    Abilities.strength = fixNaN(Abilities.strength);
+    Abilities.dexterity = fixNaN(Abilities.dexterity);
+    Abilities.constitution = fixNaN(Abilities.constitution);
+    Abilities.intelligence = fixNaN(Abilities.intelligence);
+    Abilities.wisdom = fixNaN(Abilities.wisdom);
+    Abilities.charisma = fixNaN(Abilities.charisma);
 
     //return the processed ability scores as a single object
     return Abilities;
