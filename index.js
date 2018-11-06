@@ -1,5 +1,6 @@
 //Compatible monster sources: PFSRD
 //can refactor this for efficiency but let's just work on making things work for now
+//should probably write some unit tests for all this soon
 
 const inputBox = "input-box";  //the name of the input textarea; paste a monster here from a compatible source
 
@@ -12,11 +13,13 @@ function testProcess() {
     let testHP = getStats(testMonster, "hp");
     let testSaves = getStats(testMonster, "Fort");
     let testAbilities = getStats(testMonster, "Str");
+    testAbilities = processAbilities(testAbilities);
     console.log(testAC)
     console.log(testHP)
     console.log(testSaves)
     console.log(testAbilities)    
 }
+
 //----STRING FUNCTIONS
 //----Various functions to get text from the input, split it up into arrays, search it for particular information
 
@@ -88,8 +91,10 @@ function getStats(monster, statName) {
 //----PROCESS STATS
 //These functions extract useful information from stat strings, generally as integers that can be easily converted to another rules edition
 
-function processAC(rawText) {
+function processAC(rawText) {  //extracts AC, touch AC, and flat-footed AC
     //This section will chop the armor sources in parentheses off the end of the AC; if there's no parenthetical, it doesn't do anything
+    //simple function to code because the line format will always be the same
+
     let cutOffPoint = rawText.indexOf("(") - 1; 
     rawText = rawText.slice(0, cutOffPoint);
 
@@ -121,6 +126,58 @@ function processAC(rawText) {
     //return the processed AC types as a single object
     return Armor;
 }
+
+function processAbilities(rawText) {  //extracts all six ability scores
+    //simple function to code because the line format will always be the same
+
+    let Abilities = {};
+
+    //get Str, cut it out of the raw text
+    cutOffPoint = rawText.indexOf(","); 
+    Abilities.strength = rawText.slice(0, cutOffPoint);
+    rawText = rawText.slice(cutOffPoint+2)
+
+    //get Dex, cut it out of the raw text; repeat for Con, Int, Wis, Cha below; pretty straightforward
+    cutOffPoint = rawText.indexOf(","); 
+    Abilities.dexterity = rawText.slice(0, cutOffPoint);
+    rawText = rawText.slice(cutOffPoint+2)
+
+    cutOffPoint = rawText.indexOf(","); 
+    Abilities.constitution = rawText.slice(0, cutOffPoint);
+    rawText = rawText.slice(cutOffPoint+2)
+
+
+    cutOffPoint = rawText.indexOf(","); 
+    Abilities.intelligence = rawText.slice(0, cutOffPoint);
+    rawText = rawText.slice(cutOffPoint+2)
+
+    cutOffPoint = rawText.indexOf(","); 
+    Abilities.wisdom = rawText.slice(0, cutOffPoint);
+    rawText = rawText.slice(cutOffPoint+2)
+
+    //the remainder will be Charisma
+    Abilities.charisma = rawText;
+
+    //strip non-numeric characters
+    Abilities.strength = Abilities.strength.replace(/\D/g,'');
+    Abilities.dexterity = Abilities.dexterity.replace(/\D/g,'');
+    Abilities.constitution = Abilities.constitution.replace(/\D/g,'');
+    Abilities.intelligence = Abilities.intelligence.replace(/\D/g,'');
+    Abilities.wisdom = Abilities.wisdom.replace(/\D/g,'');
+    Abilities.charisma = Abilities.charisma.replace(/\D/g,'');
+
+    //convert to integers
+    Abilities.strength = parseInt(Abilities.strength, 10);
+    Abilities.dexterity = parseInt(Abilities.dexterity, 10);
+    Abilities.constitution = parseInt(Abilities.constitution, 10);
+    Abilities.intelligence = parseInt(Abilities.intelligence, 10);
+    Abilities.wisdom = parseInt(Abilities.wisdom, 10);
+    Abilities.charisma = parseInt(Abilities.charisma, 10);
+
+    //return the processed ability scores as a single object
+    return Abilities;
+}
+
 
 //---NEEDS BETTER DEFINITION
 //---Various stuff that should be renamed and put elsewhere
