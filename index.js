@@ -19,6 +19,7 @@ function testProcess() {
     let testAbilities = getStats(testMonster, "Str");
     testAbilities = processAbilities(testAbilities);
     let testAlignment = getStatsRegex(testMonster, /LG|NG|CG|LN|\bN\b|LE|NE|CE/)
+    testAlignment = processIdentity(testAlignment)
 
     console.log(testAC)
     console.log(testHP)
@@ -259,6 +260,49 @@ function processHitDice(rawText) {  //extracts Hit Dice; nothing else is needed
     rawText = parseInt(rawText, 10);
     
     return rawText; //returns a single integer because hit dice are simple
+}
+
+function processIdentity(rawText) {  //extracts alignment, size, type, and subtype; everything on the line starting with alignment
+//simple function to code because the line format will always be the same
+
+let Identity = {};
+let hasSubCategory = false;
+
+//checks for a subcategory or subcategories in parentheses
+if ( rawText.indexOf("(") != -1 ) {
+    hasSubCategory = true;
+}
+
+//get alignment, cut it out of the raw text
+cutOffPoint = rawText.indexOf(" "); 
+Identity.alignment = rawText.slice(0, cutOffPoint);
+rawText = rawText.slice(cutOffPoint+1)
+
+//get size category, cut it out of the raw text
+cutOffPoint = rawText.indexOf(" ");
+Identity.sizeCategory = rawText.slice(0, cutOffPoint);
+rawText = rawText.slice(cutOffPoint+1)
+
+//get creature category
+if ( hasSubCategory ) {
+    cutOffPoint = rawText.indexOf("("); 
+    Identity.creatureCategory = rawText.slice(0, cutOffPoint);
+    rawText = rawText.slice(cutOffPoint+1)
+    //if there's a remainder, it should be the creature subcategories
+    Identity.creatureSubCategory = rawText;
+}
+else {
+    Identity.creatureCategory = rawText;
+    Identity.creatureSubCategory = "";
+}
+
+
+    //clean up the output to remove unnecessary characters
+    Identity.creatureCategory = Identity.creatureCategory.replace(/\s+/g, "");
+    Identity.creatureSubCategory = Identity.creatureSubCategory.replace(")", "");
+
+//return the processed ability scores as a single object
+return Identity;
 }
 
 //---NEEDS BETTER DEFINITION
