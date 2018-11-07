@@ -1,3 +1,6 @@
+//Inefficiencies
+//getStatsRegex and getLineRegex seem kinda kludgy, but they work for now
+
 //Compatible monster sources: PFSRD
 //can refactor this for efficiency but let's just work on making things work for now
 //should probably write some unit tests for all this soon
@@ -15,10 +18,13 @@ function testProcess() {
     let testSaves = getStats(testMonster, "Fort");
     let testAbilities = getStats(testMonster, "Str");
     testAbilities = processAbilities(testAbilities);
+    let testAlignment = getStatsRegex(testMonster, /LG|NG|CG|LN|\bN\b|LE|NE|CE/)
+
     console.log(testAC)
     console.log(testHP)
     console.log(testSaves)
-    console.log(testAbilities)    
+    console.log(testAbilities)
+    console.log(testAlignment)
 }
 
 //----STRING FUNCTIONS
@@ -53,12 +59,54 @@ function findLine(word, monster) {  //finds a particular element in a monster ar
     return targetIndex;
 }
 
+function findLineRegex(word, monster) {  //just like findLine, but takes a RegExp instead of a normal string
+    //this will search through the entire text, even after it finds the index, so it shouldn't be used with enormous text blocks at the moment
+    let targetIndex = -1;
+    
+    for (let i = 0; i < monster.length; i += 1) {
+        if ( word.test(monster[i]) ) { //if the word is in the particular line of the array
+            targetIndex = i;
+        }
+        else {
+        }
+    }
+    return targetIndex;
+}
+
 function fixNaN(possibleNaN) {  //changes any Not A Number integers to 0
     if (isNaN(possibleNaN)) {  //if the argument tested is not a number
         possibleNaN = 0; //changes it to 0; otherwise, nothing happens
     }
 
     return possibleNaN;
+}
+
+function wordArrayCheck(textchunk, wordArray) { //goes through an array of strings, checks each against a bit of text until it finds a match
+
+    /*This one is short, but requires a bit of explaining.
+    This function takes a line of text from a monster array (textchunk), and an array of strings to search through (wordArray)
+    It will search through the wordArray from index 0 to the end, and check to see if each string is in the textchunk
+    It will return the last matching term in the array; for example, 
+    if textchunk = "apples and oranges and pineapples" and wordArray = ["oranges", "bananas", "apples", "milk"]
+    then it'll return "apples"
+    
+    Use this one to find alignment, size category, or creature type.
+    If there are several similar terms, where one could be found inside another, write the wordArray from shortest to longest string;
+    For example, "Humanoid" should come before "Monstrous Humanoid" to prevent it from returning "Humanoid" for a monstrous humanoid
+
+    If it doesn't find any of the words, then it returns the string "Unknown";
+
+    This is case sensitive
+    */
+
+    let foundText = "Unknown"
+    for (let i = 0; i < wordArray.length; i += 1) {
+        if (wholeWord(wordArray[i]).test(textchunk) ) { //if the word exists in the textchunk as a complete word, not part of another
+            foundText = wordArray[i];
+        }
+    }
+
+    return foundText;
 }
 
 //----SOURCE CHECK
@@ -93,10 +141,16 @@ function checkPFSRD(textchunk) {
 //----GET STATS
 //----Functions to grab particular stat lines from the document; most can be done with getStats
 
-function getStats(monster, statName) {
+function getStats(monster, statName) {  //searches a "monster" array for a line that contains the relevant statName
     let targetIndex = findLine(statName, monster);
     return monster[targetIndex];
 }
+
+function getStatsRegex(monster, statName) {  //as getStats, but takes a RegExp as a statName instead of a string
+    let targetIndex = findLineRegex(statName, monster);
+    return monster[targetIndex];
+}
+
 //----PROCESS STATS
 //These functions extract useful information from stat strings, generally as integers that can be easily converted to another rules edition
 
