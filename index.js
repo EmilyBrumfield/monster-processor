@@ -1,9 +1,18 @@
+//iterative attacks should be replaced with "iterative" or something, because they're often different when converted
+
+//Problems
+//wholeWord will return the last line with the contents, not all lines or the first line or whatever
+//should probably fix that before it becomes a problem, but it's not the first priority right now
+
 //Inefficiencies
 //getStatsRegex and getLineRegex seem kinda kludgy, but they work for now
 
 //Compatible monster sources: PFSRD
 //can refactor this for efficiency but let's just work on making things work for now
 //should probably write some unit tests for all this soon
+
+//New Priority: Now that the basics work, pick a converter type (2e, 5e, etc) and focus on getting everything it needs
+//Worry about other stuff later
 
 const inputBox = "input-box";  //the name of the input textarea; paste a monster here from a compatible source
 
@@ -20,12 +29,18 @@ function testProcess() {
     testAbilities = processAbilities(testAbilities);
     let testAlignment = getStatsRegex(testMonster, /LG|NG|CG|LN|\bN\b|LE|NE|CE/)
     testAlignment = processIdentity(testAlignment)
+    let testDefensive = getStats(testMonster, "Defensive Abilities");
+    let testWeakness = getStats(testMonster, "Weaknesses");
+    let testSpecialAttacks = getStats(testMonster, "Special Attacks");
+    let testMelee = getStats(testMonster, "Melee");
+    testMelee = processAttack(testMelee);
 
     console.log(testAC)
     console.log(testHP)
     console.log(testSaves)
     console.log(testAbilities)
     console.log(testAlignment)
+    console.log(testMelee)
 }
 
 //----STRING FUNCTIONS
@@ -110,6 +125,21 @@ function wordArrayCheck(textchunk, wordArray) { //goes through an array of strin
     return foundText;
 }
 
+
+function sanitize(rawText) { //removes fancy formatting like longdashes and such
+    rawText = rawText.replace(/–/g, "-");
+    return rawText;
+}
+
+function clearModifiers(rawText) {  //deletes modifiers like +3, -5, or the like
+
+    let modifierTemplate = /[+-]\d*/g;
+    rawText = sanitize(rawText); //gets rid of fancy dashes to make this easier
+    rawText = rawText.replace(/[+-]\d*/g, "");
+
+    return rawText;
+}
+
 //----SOURCE CHECK
 //----Identifies source of the monster text; can only process a compatible source or something formatted the same
 
@@ -154,42 +184,6 @@ function getStatsRegex(monster, statName) {  //as getStats, but takes a RegExp a
 
 //----PROCESS STATS
 //These functions extract useful information from stat strings, generally as integers that can be easily converted to another rules edition
-
-function processAC(rawText) {  //extracts AC, touch AC, and flat-footed AC
-    //This section will chop the armor sources in parentheses off the end of the AC; if there's no parenthetical, it doesn't do anything
-    //simple function to code because the line format will always be the same
-
-    let cutOffPoint = rawText.indexOf("(") - 1; 
-    rawText = rawText.slice(0, cutOffPoint);
-
-    let Armor = {};
-
-    //get AC, cut it out of the raw text
-    cutOffPoint = rawText.indexOf(","); 
-    Armor.AC = rawText.slice(0, cutOffPoint);
-    rawText = rawText.slice(cutOffPoint+2)
-
-    //get touch, cut it out of the raw text
-    cutOffPoint = rawText.indexOf(","); 
-    Armor.touch = rawText.slice(0, cutOffPoint);
-    rawText = rawText.slice(cutOffPoint+2)
-    
-    //the remainder is flat-footed; get it
-    Armor.flatfooted = rawText;
-
-    //strip non-numeric characters
-    Armor.AC = Armor.AC.replace(/\D/g,'');
-    Armor.touch = Armor.touch.replace(/\D/g,'');
-    Armor.flatfooted = Armor.flatfooted.replace(/\D/g,'');
-
-    //convert to integers
-    Armor.AC = parseInt(Armor.AC, 10);
-    Armor.touch = parseInt(Armor.touch, 10);
-    Armor.flatfooted = parseInt(Armor.flatfooted, 10);
-   
-    //return the processed AC types as a single object
-    return Armor;
-}
 
 function processAbilities(rawText) {  //extracts all six ability scores
     //simple function to code because the line format will always be the same
@@ -250,6 +244,42 @@ function processAbilities(rawText) {  //extracts all six ability scores
     return Abilities;
 }
 
+function processAC(rawText) {  //extracts AC, touch AC, and flat-footed AC
+    //This section will chop the armor sources in parentheses off the end of the AC; if there's no parenthetical, it doesn't do anything
+    //simple function to code because the line format will always be the same
+
+    let cutOffPoint = rawText.indexOf("(") - 1; 
+    rawText = rawText.slice(0, cutOffPoint);
+
+    let Armor = {};
+
+    //get AC, cut it out of the raw text
+    cutOffPoint = rawText.indexOf(","); 
+    Armor.AC = rawText.slice(0, cutOffPoint);
+    rawText = rawText.slice(cutOffPoint+2)
+
+    //get touch, cut it out of the raw text
+    cutOffPoint = rawText.indexOf(","); 
+    Armor.touch = rawText.slice(0, cutOffPoint);
+    rawText = rawText.slice(cutOffPoint+2)
+    
+    //the remainder is flat-footed; get it
+    Armor.flatfooted = rawText;
+
+    //strip non-numeric characters
+    Armor.AC = Armor.AC.replace(/\D/g,'');
+    Armor.touch = Armor.touch.replace(/\D/g,'');
+    Armor.flatfooted = Armor.flatfooted.replace(/\D/g,'');
+
+    //convert to integers
+    Armor.AC = parseInt(Armor.AC, 10);
+    Armor.touch = parseInt(Armor.touch, 10);
+    Armor.flatfooted = parseInt(Armor.flatfooted, 10);
+   
+    //return the processed AC types as a single object
+    return Armor;
+}
+
 function processHitDice(rawText) {  //extracts Hit Dice; nothing else is needed
     
     let cutOffPoint = rawText.indexOf("(") + 1; //cut off everything before the hit dice
@@ -296,7 +326,6 @@ else {
     Identity.creatureSubCategory = "";
 }
 
-
     //clean up the output to remove unnecessary characters
     Identity.creatureCategory = Identity.creatureCategory.replace(/\s+/g, "");
     Identity.creatureSubCategory = Identity.creatureSubCategory.replace(")", "");
@@ -305,10 +334,57 @@ else {
 return Identity;
 }
 
+function processAttack(rawText) {  //extracts attacks and damage
+    //complex function to code because the line can vary a bit
+   
+    let Attack = {};
+    let cutOffPoint = -1;
+    let cutOffPointSecond = -1;
+    
+    rawText = sanitize(rawText);
+
+    //cut off the Melee or Ranged tag; it always comes before the first space
+    cutOffPoint = rawText.indexOf(" "); 
+    rawText = rawText.slice(cutOffPoint+1);
+
+    rawText = clearModifiers(rawText);
+
+    /*
+    
+    //get size category, cut it out of the raw text
+    cutOffPoint = rawText.indexOf(" ");
+    Identity.sizeCategory = rawText.slice(0, cutOffPoint);
+    rawText = rawText.slice(cutOffPoint+1)
+    
+    //get creature category
+    if ( hasSubCategory ) {
+        cutOffPoint = rawText.indexOf("("); 
+        Identity.creatureCategory = rawText.slice(0, cutOffPoint);
+        rawText = rawText.slice(cutOffPoint+1)
+        //if there's a remainder, it should be the creature subcategories
+        Identity.creatureSubCategory = rawText;
+    }
+    else {
+        Identity.creatureCategory = rawText;
+        Identity.creatureSubCategory = "";
+    }
+    
+        //clean up the output to remove unnecessary characters
+        Identity.creatureCategory = Identity.creatureCategory.replace(/\s+/g, "");
+        Identity.creatureSubCategory = Identity.creatureSubCategory.replace(")", "");
+    
+    //return the processed ability scores as a single object
+*/
+    return rawText;
+    }
+
 //---NEEDS BETTER DEFINITION
 //---Various stuff that should be renamed and put elsewhere
 
 //makes sure this is PFSRD text, chops it up for use in the next step
+
+
+
 function butcherMonster(targetID) {
     if ( checkPFSRD(grabText(inputBox))) {
         //here is where the code goes
