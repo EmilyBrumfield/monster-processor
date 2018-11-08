@@ -1,3 +1,5 @@
+//processAttack should format the output, note iterative attacks
+
 //iterative attacks should be replaced with "iterative" or something, because they're often different when converted
 
 //Problems
@@ -342,7 +344,7 @@ function processAttack(rawText) {  //extracts attacks and damage
     let rawTextFrontChunk = "";
     let rawTextBackChunk = "";
     let processedChunk = "";
-    let conjunctions = /and|or/g;
+    let conjunctions = /and|or/;
     
     rawText = sanitize(rawText);
 
@@ -365,36 +367,13 @@ function processAttack(rawText) {  //extracts attacks and damage
         processedChunk += rawText.slice(0, cutOffPoint+1);
         rawText = rawText.slice(cutOffPoint+1);
 
-    } while ( conjunctions.test(rawText) )
+    } while ( conjunctions.test(rawText) ) //keeps running as long as there's "and" or "or" in the string, indicating remaining unprocessed attacks
 
-    /*
-    
-    //get size category, cut it out of the raw text
-    cutOffPoint = rawText.indexOf(" ");
-    Identity.sizeCategory = rawText.slice(0, cutOffPoint);
-    rawText = rawText.slice(cutOffPoint+1)
-    
-    //get creature category
-    if ( hasSubCategory ) {
-        cutOffPoint = rawText.indexOf("("); 
-        Identity.creatureCategory = rawText.slice(0, cutOffPoint);
-        rawText = rawText.slice(cutOffPoint+1)
-        //if there's a remainder, it should be the creature subcategories
-        Identity.creatureSubCategory = rawText;
-    }
-    else {
-        Identity.creatureCategory = rawText;
-        Identity.creatureSubCategory = "";
-    }
-    
-        //clean up the output to remove unnecessary characters
-        Identity.creatureCategory = Identity.creatureCategory.replace(/\s+/g, "");
-        Identity.creatureSubCategory = Identity.creatureSubCategory.replace(")", "");
-    
-    //return the processed ability scores as a single object
-*/
+    processedChunk = processedChunk.replace(/  +/g, ' ');  //get rid of extra whitespace
+    processedChunk = processedChunk.replace(/\/+/g, 'iterative');  //turns interative attack slashes into the word "iterative"
+
     return processedChunk;
-    }
+}
 
 //---NEEDS BETTER DEFINITION
 //---Various stuff that should be renamed and put elsewhere
