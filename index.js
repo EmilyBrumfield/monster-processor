@@ -339,7 +339,10 @@ function processAttack(rawText) {  //extracts attacks and damage
    
     let Attack = {};
     let cutOffPoint = -1;
-    let cutOffPointSecond = -1;
+    let rawTextFrontChunk = "";
+    let rawTextBackChunk = "";
+    let processedChunk = "";
+    let conjunctions = /and|or/g;
     
     rawText = sanitize(rawText);
 
@@ -347,7 +350,22 @@ function processAttack(rawText) {  //extracts attacks and damage
     cutOffPoint = rawText.indexOf(" "); 
     rawText = rawText.slice(cutOffPoint+1);
 
-    rawText = clearModifiers(rawText);
+    //do while means that this keeps running until all attacks have been processed
+    do {
+
+        //grab everything up to the first (, remove modifiers, put it back together
+        cutOffPoint = rawText.indexOf("(");
+        rawTextFrontChunk = rawText.slice(0, cutOffPoint);
+        rawTextBackChunk = rawText.slice(cutOffPoint);
+        rawTextFrontChunk = clearModifiers(rawTextFrontChunk);
+        rawText = rawTextFrontChunk + rawTextBackChunk;
+
+        //grab everything up to the first ), add it to the processed string, delete it from the rawText
+        cutOffPoint = rawText.indexOf(")");
+        processedChunk += rawText.slice(0, cutOffPoint+1);
+        rawText = rawText.slice(cutOffPoint+1);
+
+    } while ( conjunctions.test(rawText) )
 
     /*
     
@@ -375,7 +393,7 @@ function processAttack(rawText) {  //extracts attacks and damage
     
     //return the processed ability scores as a single object
 */
-    return rawText;
+    return processedChunk;
     }
 
 //---NEEDS BETTER DEFINITION
