@@ -23,6 +23,9 @@ const outputBox = "output-box";  //the name of the output textarea
 
 function testProcess() {
     let testMonster = butcherMonster(inputBox);
+
+    let testName = getStats(testMonster, "CR");
+    testName = processName(testName);
     let testAC = getStats(testMonster, "AC");
     testAC = processAC(testAC);
     let testHP = getStats(testMonster, "hp");
@@ -39,6 +42,7 @@ function testProcess() {
     testMelee = processAttack(testMelee);
 
     clearText();
+    addTextLine(testName)
     addTextLine(testAC.AC)
     addTextLine(testHP)
     addTextLine(testSaves)
@@ -84,12 +88,13 @@ function wholeWord(word) { //placeholder
 }
 
 function findLine(word, monster) {  //finds a particular element in a monster array based on the starting word, returns index of that element
-    //this will search through the entire text, even after it finds the index, so it shouldn't be used with enormous text blocks at the moment
+    //this will stop after the first time it finds the element
     let targetIndex = -1;
     
     for (let i = 0; i < monster.length; i += 1) {
         if ( wholeWord(word).test(monster[i]) ) { //if the word is in the particular line of the array
             targetIndex = i;
+            break;
         }
         else {
         }
@@ -98,12 +103,13 @@ function findLine(word, monster) {  //finds a particular element in a monster ar
 }
 
 function findLineRegex(word, monster) {  //just like findLine, but takes a RegExp instead of a normal string
-    //this will search through the entire text, even after it finds the index, so it shouldn't be used with enormous text blocks at the moment
+    //this will stop after the first time it finds the element
     let targetIndex = -1;
     
     for (let i = 0; i < monster.length; i += 1) {
         if ( word.test(monster[i]) ) { //if the word is in the particular line of the array
             targetIndex = i;
+            break;
         }
         else {
         }
@@ -355,6 +361,13 @@ else {
 //return the processed ability scores as a single object
 return Identity;
 }
+
+function processName(rawText) {  //clears the CR portion of the name line
+
+    rawText = rawText.replace(/ CR \d*/, "");
+    return rawText;
+}
+
 
 function processAttack(rawText) {  //extracts attacks and damage
     //complex function to code because the line can vary a bit
