@@ -17,6 +17,7 @@
 //Worry about other stuff later
 
 const inputBox = "input-box";  //the name of the input textarea; paste a monster here from a compatible source
+const outputBox = "output-box";  //the name of the output textarea
 
 //-----------------------------TEST FUNCTION, IGNORE-------------------
 
@@ -37,21 +38,40 @@ function testProcess() {
     let testMelee = getStats(testMonster, "Melee");
     testMelee = processAttack(testMelee);
 
-    console.log(testAC)
-    console.log(testHP)
-    console.log(testSaves)
-    console.log(testAbilities)
-    console.log(testAlignment)
-    console.log(testMelee)
+    clearText();
+    addTextLine(testAC.AC)
+    addTextLine(testHP)
+    addTextLine(testSaves)
+    addTextLine(testAbilities.strength)
+    addTextLine(testAlignment.sizeCategory + " "); addText(testAlignment.creatureCategory)
+    addTextLine(testMelee)
+}
+
+
+function grabText() {
+    let textchunk = document.getElementById(inputBox).value;
+    return textchunk;
+}
+
+function clearText() {  //clears text from the output box
+    document.getElementById(outputBox).value = "";
+}
+
+function addText(textchunk){  //adds text to the last line in the output box
+    let oldText = document.getElementById(outputBox).value;
+    oldText += textchunk;
+    document.getElementById(outputBox).value = oldText;
+}
+
+function addTextLine(textchunk){ //adds text on a new line in the output box
+    let oldText = document.getElementById(outputBox).value;
+    oldText += "\n" + textchunk;
+    document.getElementById(outputBox).value = oldText;
 }
 
 //----STRING FUNCTIONS
 //----Various functions to get text from the input, split it up into arrays, search it for particular information
 
-function grabText(targetID) {
-    let textchunk = document.getElementById(targetID).value;
-    return textchunk;
-}
 
 function splitText(targetID) {
     let textchunk = grabText(targetID);
