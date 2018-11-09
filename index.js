@@ -67,15 +67,19 @@ function addText(textchunk){  //adds text to the last line in the output box
     document.getElementById(outputBox).value = oldText;
 }
 
-function addTextLine(textchunk){ //adds text on a new line in the output box
+function addTextLine(textchunk){ //adds text on a new line in the output box; adds text without new line if output box is empty
     let oldText = document.getElementById(outputBox).value;
-    oldText += "\n" + textchunk;
+    if (oldText != "") {
+        oldText += "\n" + textchunk;
+    }
+    else {
+        oldText += textchunk;
+    }
     document.getElementById(outputBox).value = oldText;
 }
 
 //----STRING FUNCTIONS
 //----Various functions to get text from the input, split it up into arrays, search it for particular information
-
 
 function splitText(targetID) {
     let textchunk = grabText(targetID);
@@ -152,7 +156,6 @@ function wordArrayCheck(textchunk, wordArray) { //goes through an array of strin
 
     return foundText;
 }
-
 
 function sanitize(rawText) { //removes fancy formatting like longdashes and such
     rawText = rawText.replace(/–/g, "-");
@@ -308,6 +311,45 @@ function processAC(rawText) {  //extracts AC, touch AC, and flat-footed AC
     return Armor;
 }
 
+function processAttack(rawText) {  //extracts attacks and damage
+    //complex function to code because the line can vary a bit
+   
+    let Attack = {};
+    let cutOffPoint = -1;
+    let rawTextFrontChunk = "";
+    let rawTextBackChunk = "";
+    let processedChunk = "";
+    let conjunctions = /and|or/;
+    
+    rawText = sanitize(rawText);
+
+    //cut off the Melee or Ranged tag; it always comes before the first space
+    cutOffPoint = rawText.indexOf(" "); 
+    rawText = rawText.slice(cutOffPoint+1);
+
+    //do while means that this keeps running until all attacks have been processed
+    do {
+
+        //grab everything up to the first (, remove modifiers, put it back together
+        cutOffPoint = rawText.indexOf("(");
+        rawTextFrontChunk = rawText.slice(0, cutOffPoint);
+        rawTextBackChunk = rawText.slice(cutOffPoint);
+        rawTextFrontChunk = clearModifiers(rawTextFrontChunk);
+        rawText = rawTextFrontChunk + rawTextBackChunk;
+
+        //grab everything up to the first ), add it to the processed string, delete it from the rawText
+        cutOffPoint = rawText.indexOf(")");
+        processedChunk += rawText.slice(0, cutOffPoint+1);
+        rawText = rawText.slice(cutOffPoint+1);
+
+    } while ( conjunctions.test(rawText) ) //keeps running as long as there's "and" or "or" in the string, indicating remaining unprocessed attacks
+
+    processedChunk = processedChunk.replace(/  +/g, ' ');  //get rid of extra whitespace
+    processedChunk = processedChunk.replace(/\/+/g, 'iterative');  //turns interative attack slashes into the word "iterative"
+
+    return processedChunk;
+}
+
 function processHitDice(rawText) {  //extracts Hit Dice; nothing else is needed
     
     let cutOffPoint = rawText.indexOf("(") + 1; //cut off everything before the hit dice
@@ -368,52 +410,10 @@ function processName(rawText) {  //clears the CR portion of the name line
     return rawText;
 }
 
-
-function processAttack(rawText) {  //extracts attacks and damage
-    //complex function to code because the line can vary a bit
-   
-    let Attack = {};
-    let cutOffPoint = -1;
-    let rawTextFrontChunk = "";
-    let rawTextBackChunk = "";
-    let processedChunk = "";
-    let conjunctions = /and|or/;
-    
-    rawText = sanitize(rawText);
-
-    //cut off the Melee or Ranged tag; it always comes before the first space
-    cutOffPoint = rawText.indexOf(" "); 
-    rawText = rawText.slice(cutOffPoint+1);
-
-    //do while means that this keeps running until all attacks have been processed
-    do {
-
-        //grab everything up to the first (, remove modifiers, put it back together
-        cutOffPoint = rawText.indexOf("(");
-        rawTextFrontChunk = rawText.slice(0, cutOffPoint);
-        rawTextBackChunk = rawText.slice(cutOffPoint);
-        rawTextFrontChunk = clearModifiers(rawTextFrontChunk);
-        rawText = rawTextFrontChunk + rawTextBackChunk;
-
-        //grab everything up to the first ), add it to the processed string, delete it from the rawText
-        cutOffPoint = rawText.indexOf(")");
-        processedChunk += rawText.slice(0, cutOffPoint+1);
-        rawText = rawText.slice(cutOffPoint+1);
-
-    } while ( conjunctions.test(rawText) ) //keeps running as long as there's "and" or "or" in the string, indicating remaining unprocessed attacks
-
-    processedChunk = processedChunk.replace(/  +/g, ' ');  //get rid of extra whitespace
-    processedChunk = processedChunk.replace(/\/+/g, 'iterative');  //turns interative attack slashes into the word "iterative"
-
-    return processedChunk;
-}
-
 //---NEEDS BETTER DEFINITION
 //---Various stuff that should be renamed and put elsewhere
 
 //makes sure this is PFSRD text, chops it up for use in the next step
-
-
 
 function butcherMonster(targetID) {
     if ( checkPFSRD(grabText(inputBox))) {
