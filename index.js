@@ -1,4 +1,4 @@
-//processAttack should format the output, note iterative attacks
+//misidentifies / before critical range as iterative attacks, needs to be fixed
 
 //iterative attacks should be replaced with "iterative" or something, because they're often different when converted
 
@@ -23,7 +23,6 @@ const outputBox = "output-box";  //the name of the output textarea
 
 function testProcess() {
     let testMonster = butcherMonster(inputBox);
-
     let testName = getStats(testMonster, "CR");
     testName = processName(testName);
     let testAC = getStats(testMonster, "AC");
@@ -33,8 +32,8 @@ function testProcess() {
     let testSaves = getStats(testMonster, "Fort");
     let testAbilities = getStats(testMonster, "Str");
     testAbilities = processAbilities(testAbilities);
-    let testAlignment = getStatsRegex(testMonster, /LG|NG|CG|LN|\bN\b|LE|NE|CE/)
-    testAlignment = processIdentity(testAlignment)
+    let testAlignment = getStatsRegex(testMonster, /LG|NG|CG|LN|\bN\b|LE|NE|CE/);
+    testAlignment = processIdentity(testAlignment);
     let testDefensive = getStats(testMonster, "Defensive Abilities");
     let testWeakness = getStats(testMonster, "Weaknesses");
     let testSpecialAttacks = getStats(testMonster, "Special Attacks");
@@ -42,18 +41,18 @@ function testProcess() {
     testMelee = processAttack(testMelee);
 
     clearText();
-    addTextLine(testName)
-    addTextLine(testAC.AC)
-    addTextLine(testHP)
-    addTextLine(testSaves)
-    addTextLine(testAbilities.strength)
-    addTextLine(testAlignment.sizeCategory + " "); addText(testAlignment.creatureCategory)
-    addTextLine(testMelee)
+    addTextLine(testName);
+    addTextLine(testAC.AC);
+    addTextLine(testHP);
+    addTextLine(testSaves);
+    addTextLine(testAbilities.strength);
+    addTextLine(testAlignment.sizeCategory + " "); addText(testAlignment.creatureCategory);
+    addTextLine(testMelee);
 }
 
 
-function grabText() {
-    let textchunk = document.getElementById(inputBox).value;
+function grabText(targetID) {
+    let textchunk = document.getElementById(targetID).value;
     return textchunk;
 }
 
@@ -83,18 +82,18 @@ function addTextLine(textchunk){ //adds text on a new line in the output box; ad
 
 function splitText(targetID) {
     let textchunk = grabText(targetID);
-    return textchunk.split('\n');
+    return textchunk.split("\n");
 }
 
 function wholeWord(word) { //placeholder
-    let regWord = new RegExp('\\b' + word + '\\b');
+    let regWord = new RegExp("\\b" + word + "\\b");
     return regWord;
 }
 
 function findLine(word, monster) {  //finds a particular element in a monster array based on the starting word, returns index of that element
     //this will stop after the first time it finds the element
     let targetIndex = -1;
-    
+
     for (let i = 0; i < monster.length; i += 1) {
         if ( wholeWord(word).test(monster[i]) ) { //if the word is in the particular line of the array
             targetIndex = i;
@@ -109,7 +108,7 @@ function findLine(word, monster) {  //finds a particular element in a monster ar
 function findLineRegex(word, monster) {  //just like findLine, but takes a RegExp instead of a normal string
     //this will stop after the first time it finds the element
     let targetIndex = -1;
-    
+
     for (let i = 0; i < monster.length; i += 1) {
         if ( word.test(monster[i]) ) { //if the word is in the particular line of the array
             targetIndex = i;
@@ -134,10 +133,10 @@ function wordArrayCheck(textchunk, wordArray) { //goes through an array of strin
     /*This one is short, but requires a bit of explaining.
     This function takes a line of text from a monster array (textchunk), and an array of strings to search through (wordArray)
     It will search through the wordArray from index 0 to the end, and check to see if each string is in the textchunk
-    It will return the last matching term in the array; for example, 
+    It will return the last matching term in the array; for example,
     if textchunk = "apples and oranges and pineapples" and wordArray = ["oranges", "bananas", "apples", "milk"]
     then it'll return "apples"
-    
+
     Use this one to find alignment, size category, or creature type.
     If there are several similar terms, where one could be found inside another, write the wordArray from shortest to longest string;
     For example, "Humanoid" should come before "Monstrous Humanoid" to prevent it from returning "Humanoid" for a monstrous humanoid
@@ -164,7 +163,6 @@ function sanitize(rawText) { //removes fancy formatting like longdashes and such
 
 function clearModifiers(rawText) {  //deletes modifiers like +3, -5, or the like
 
-    let modifierTemplate = /[+-]\d*/g;
     rawText = sanitize(rawText); //gets rid of fancy dashes to make this easier
     rawText = rawText.replace(/[+-]\d*/g, "");
 
@@ -330,11 +328,12 @@ function processAttack(rawText) {  //extracts attacks and damage
     //do while means that this keeps running until all attacks have been processed
     do {
 
-        //grab everything up to the first (, remove modifiers, put it back together
+        //grab everything up to the first (, remove modifiers, note iterative attacks, put it back together
         cutOffPoint = rawText.indexOf("(");
         rawTextFrontChunk = rawText.slice(0, cutOffPoint);
         rawTextBackChunk = rawText.slice(cutOffPoint);
         rawTextFrontChunk = clearModifiers(rawTextFrontChunk);
+        rawTextFrontChunk = rawTextFrontChunk.replace(/\/+/g, 'iterative');  //turns interative attack slashes into the word "iterative"
         rawText = rawTextFrontChunk + rawTextBackChunk;
 
         //grab everything up to the first ), add it to the processed string, delete it from the rawText
@@ -345,8 +344,7 @@ function processAttack(rawText) {  //extracts attacks and damage
     } while ( conjunctions.test(rawText) ) //keeps running as long as there's "and" or "or" in the string, indicating remaining unprocessed attacks
 
     processedChunk = processedChunk.replace(/  +/g, ' ');  //get rid of extra whitespace
-    processedChunk = processedChunk.replace(/\/+/g, 'iterative');  //turns interative attack slashes into the word "iterative"
-
+    
     return processedChunk;
 }
 
@@ -410,6 +408,36 @@ function processName(rawText) {  //clears the CR portion of the name line
     return rawText;
 }
 
+//-----CONVERT STATS TO 2E-------
+//Most of these methods involve some game designer decisions on my part, like the exact point to reduce extremely high Armor Class  --Emily
+
+
+function convert2eAC(AC) {  //reduces really high AC, converts to 2e descending AC
+    if (AC > 17) { //if AC is higher than 17, halve anything above 17 and round down
+      AC = Math.floor((AC-17)/2) + 17;
+    }
+    AC = 20 - AC;
+    return AC;
+}
+
+function convert2eTHAC0(HitDice) {  //calculates THAC0 according to standard rules
+    //note that since there are no 3e creatures with less than one hit die, there aren't any THAC0 20 monsters to worry about
+    let THAC0 = 20 - HitDice;
+
+    if (THAC0 % 2 === 0) { //if THAC0 is even
+        THAC0 = THAC0 + 1;  //rounds it up to an odd number; monsters only get odd THAC0 ratings
+    };
+
+    if (THAC0 < 5) {
+        THAC0 = 5; 
+        /*ensures that THAC0 can't drop below 5; the rules don't provide for lower THAC0 than that.
+        Some unique monsters like the tarrasque have lower THAC0, but there's no clear rules for determining that.
+        */
+    };
+
+    return THAC0;
+}
+
 //---NEEDS BETTER DEFINITION
 //---Various stuff that should be renamed and put elsewhere
 
@@ -421,7 +449,7 @@ function butcherMonster(targetID) {
         return splitText(inputBox);
     }
     else {
-        alert("This isn't going to work out.")
+        alert("This isn't going to work out. Not PFSRD.")
         return ["Not PFSRD"];
     }
 }
@@ -438,3 +466,49 @@ function butcherMonster(targetID) {
 --Can have special processors and converters available in each harvester function
 
 */
+
+function convert2e() { //converts to AD&D 2e standards
+
+    let monster = butcherMonster(inputBox);
+    
+    let monsterName = getStats(monster, "CR");
+    monsterName = processName(monsterName);
+
+    let monsterAbilities = getStats(monster, "Str");
+    monsterAbilities = processAbilities(monsterAbilities);
+    let monsterIdentity = getStatsRegex(monster, /LG|NG|CG|LN|\bN\b|LE|NE|CE/);
+    monsterIdentity = processIdentity(monsterIdentity);
+
+    let monsterHD = getStats(monster, "hp");
+    monsterHD = processHitDice(monsterHD);
+
+    let monsterAC = getStats(monster, "AC");
+    monsterAC = processAC(monsterAC);
+    monsterAC.AC = convert2eAC(monsterAC.AC);
+    
+    let monsterMelee = getStats(monster, "Melee");
+    monsterMelee = processAttack(monsterMelee);
+    monsterMelee = monsterMelee.replace(" iterative", "*")
+
+    let monsterRanged = getStats(monster, "Ranged");
+    monsterRanged = processAttack(monsterRanged);
+    monsterMelee = monsterMelee.replace(" iterative", "*")
+    //asterisks mean that the 3e/PF version of the attack had iterative followups, but there's no clear 2e equivalent
+    //best solution might be to apply the fighter melee attack rates, but I'm not sure
+
+    let monsterSpeed = getStats(monster, "Speed");
+
+
+    clearText();
+    addTextLine(monsterName);
+    addText(" (" + monsterIdentity.sizeCategory + " " + monsterIdentity.creatureCategory + ")" )
+    addTextLine("HD " + monsterHD + ", ");
+    addText("AC " + monsterAC.AC + ", ");
+    addText("THAC0 " + convert2eTHAC0(monsterHD) + ", ");
+    addText(monsterSpeed);  //2e normally uses MV, but late 2e is closer to 3e/PF speed and that's probably a better choice here
+    //admittedly, using Speed without conversion also saves time on coding
+    addTextLine("Melee: " + monsterMelee);
+    addTextLine("Ranged: " + monsterRanged);
+
+ 
+}
