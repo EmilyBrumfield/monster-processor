@@ -485,18 +485,50 @@ function convert2e() { //converts to AD&D 2e standards
     let monsterAC = getStats(monster, "AC");
     monsterAC = processAC(monsterAC);
     monsterAC.AC = convert2eAC(monsterAC.AC);
-    
-    let monsterMelee = getStats(monster, "Melee");
-    monsterMelee = processAttack(monsterMelee);
-    monsterMelee = monsterMelee.replace(" iterative", "*")
-
-    let monsterRanged = getStats(monster, "Ranged");
-    monsterRanged = processAttack(monsterRanged);
-    monsterMelee = monsterMelee.replace(" iterative", "*")
-    //asterisks mean that the 3e/PF version of the attack had iterative followups, but there's no clear 2e equivalent
-    //best solution might be to apply the fighter melee attack rates, but I'm not sure
 
     let monsterSpeed = getStats(monster, "Speed");
+
+
+    //asterisks mean that the 3e/PF version of the attack had iterative followups, but there's no clear 2e equivalent
+    //best solution might be to apply the fighter melee attack rates, but I'm not sure
+    //some traits don't exist on all monsters; for these, we're going to set their default value to "" and only give them another value if one exists
+    //probably should turn these into functions for simplicity later
+
+    let monsterMelee = "";  
+    if (findLine("Melee", monster) > -1) {
+        monsterMelee = getStats(monster, "Melee");
+        monsterMelee = processAttack(monsterMelee);
+        monsterMelee = monsterMelee.replace(" iterative", "*")
+    }
+
+    let monsterRanged = "";  
+    if (findLine("Ranged", monster) > -1) {
+        monsterRanged = getStats(monster, "Ranged");
+        monsterRanged = processAttack(monsterRanged);
+        monsterRanged = monsterMelee.replace(" iterative", "*")
+    }
+   
+
+    let monsterDefensive = "";  
+    if (findLine("Defensive Abilities", monster) > -1) {
+        monsterDefensive = getStats(monster, "Defensive Abilities");
+    }
+
+    let monsterSpecialAttacks = "";  
+    if (findLine("Special Attacks", monster) > -1) {
+        monsterSpecialAttacks = getStats(monster, "Special Attacks");
+    }
+
+    let monsterWeaknesses = "";  
+    if (findLine("Weaknesses", monster) > -1) {
+        monsterWeaknesses = getStats(monster, "Weaknesses");
+    }
+
+    let monsterSQ = "";
+    if (findLine("SQ", monster) > -1) {
+        monsterSQ = getStats(monster, "SQ");
+    }
+    
 
 
     clearText();
@@ -505,10 +537,35 @@ function convert2e() { //converts to AD&D 2e standards
     addTextLine("HD " + monsterHD + ", ");
     addText("AC " + monsterAC.AC + ", ");
     addText("THAC0 " + convert2eTHAC0(monsterHD) + ", ");
+    
+    if (monsterMelee != "") {
+        addTextLine("Melee: " + monsterMelee);    
+    }
+
+    if (monsterRanged != "") {
+        addTextLine("Ranged: " + monsterRanged);
+    }    
+    
     addText(monsterSpeed);  //2e normally uses MV, but late 2e is closer to 3e/PF speed and that's probably a better choice here
-    //admittedly, using Speed without conversion also saves time on coding
-    addTextLine("Melee: " + monsterMelee);
-    addTextLine("Ranged: " + monsterRanged);
+    addTextLine(""); //extra whitespace for readability
+    
+    //add the next few traits only if they exist
+    if (monsterSpecialAttacks != "") {
+        addTextLine(monsterSpecialAttacks)
+    }
+
+    if (monsterDefensive != "") {
+        addTextLine(monsterDefensive)
+    }
+
+    if (monsterWeaknesses != "") {
+        addTextLine(monsterWeaknesses)
+    }
+
+    if (monsterSQ != "") {
+        addTextLine(monsterSQ)
+    }
+
 
  
 }
