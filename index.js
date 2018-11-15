@@ -529,15 +529,13 @@ function convert2e() { //converts to AD&D 2e standards
         monsterSQ = getStats(monster, "SQ");
     }
     
-
-
     clearText();
     addTextLine(monsterName);
     addText(" (" + monsterIdentity.sizeCategory + " " + monsterIdentity.creatureCategory + ")" )
     addTextLine("HD " + monsterHD + ", ");
     addText("AC " + monsterAC.AC + ", ");
-    addText("THAC0 " + convert2eTHAC0(monsterHD) + ", ");
-    
+    addText("THAC0 " + convert2eTHAC0(monsterHD) + ", ");    
+    addText(monsterSpeed);  //2e normally uses MV, but late 2e is closer to 3e/PF speed and that's probably a better choice here
     if (monsterMelee != "") {
         addTextLine("Melee: " + monsterMelee);    
     }
@@ -546,7 +544,7 @@ function convert2e() { //converts to AD&D 2e standards
         addTextLine("Ranged: " + monsterRanged);
     }    
     
-    addText(monsterSpeed);  //2e normally uses MV, but late 2e is closer to 3e/PF speed and that's probably a better choice here
+    
     addTextLine(""); //extra whitespace for readability
     
     //add the next few traits only if they exist
