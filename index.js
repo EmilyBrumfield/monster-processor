@@ -513,6 +513,10 @@ function convert2e() { //converts to AD&D 2e standards
     if (findLine("Defensive Abilities", monster) > -1) {
         monsterDefensive = getStats(monster, "Defensive Abilities");
     }
+    else if (findLine("Immune", monster) > -1) {
+        monsterDefensive = getStats(monster, "Immune");
+    }
+    //because sometimes there's Defensive Abilities with immunity in it, sometimes there's just Immune
 
     let monsterSpecialAttacks = "";  
     if (findLine("Special Attacks", monster) > -1) {
@@ -523,6 +527,9 @@ function convert2e() { //converts to AD&D 2e standards
     if (findLine("Weaknesses", monster) > -1) {
         monsterWeaknesses = getStats(monster, "Weaknesses");
     }
+    else if (findLine("Weakness", monster) > -1) {
+        monsterWeaknesses = getStats(monster, "Weakness");
+    } //because sometimes they say Weaknesses and sometimes they say Weakness
 
     let monsterSQ = "";
     if (findLine("SQ", monster) > -1) {
