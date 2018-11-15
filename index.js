@@ -535,6 +535,43 @@ function convert2e() { //converts to AD&D 2e standards
     if (findLine("SQ", monster) > -1) {
         monsterSQ = getStats(monster, "SQ");
     }
+
+    //spells are here; doing each one as a separate entry to make it easier to change the formatting or order later
+    
+    let monsterAtWill = "";
+    if (findLine("At will", monster) > -1) {
+        monsterAtWill = getStats(monster, "At will");
+    }
+
+    let monster3Day = "";
+    if (findLine("3/day", monster) > -1) {
+        monster3Day = getStats(monster, "3/day");
+    }
+
+    let monster2Day = "";
+    if (findLine("2/day", monster) > -1) {
+        monster2Day = getStats(monster, "2/day");
+    }
+
+    let monster1Day = "";
+    if (findLine("1/day", monster) > -1) {
+        monster1Day = getStats(monster, "1/day");
+    }
+
+    let monster1Week = "";
+    if (findLine("1/week", monster) > -1) {
+        monster1Week = getStats(monster, "1/week");
+    }
+
+    let monster1Month = "";
+    if (findLine("1/month", monster) > -1) {
+        monster1Month = getStats(monster, "1/month");
+    }
+
+    let monster1Year = "";
+    if (findLine("1/year", monster) > -1) {
+        monster1Year = getStats(monster, "1/year");
+    }
     
     clearText();
     addTextLine(monsterName);
@@ -555,22 +592,21 @@ function convert2e() { //converts to AD&D 2e standards
     addTextLine(""); //extra whitespace for readability
     
     //add the next few traits only if they exist
-    if (monsterSpecialAttacks != "") {
-        addTextLine(monsterSpecialAttacks)
+    addConditional(monsterSpecialAttacks);
+    addConditional(monsterDefensive);
+    addConditional(monsterSQ);
+    addTextLine(""); //extra whitespace for readability
+    addConditional(monsterAtWill);
+    addConditional(monster3Day);
+    addConditional(monster2Day);
+    addConditional(monster1Day);
+    addConditional(monster1Week);
+    addConditional(monster1Month);
+    addConditional(monster1Year); 
+}
+
+function addConditional(rawText) {  //adds a textline if the string isn't empty
+    if (rawText != "") {
+        addTextLine(rawText)
     }
-
-    if (monsterDefensive != "") {
-        addTextLine(monsterDefensive)
-    }
-
-    if (monsterWeaknesses != "") {
-        addTextLine(monsterWeaknesses)
-    }
-
-    if (monsterSQ != "") {
-        addTextLine(monsterSQ)
-    }
-
-
- 
 }
